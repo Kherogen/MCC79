@@ -1,22 +1,39 @@
-﻿using Microsoft.VisualBasic;
-using System.Data;
+﻿using System;
+using System.Collections.Generic;
 using System.Data.SqlClient;
-using System.Diagnostics;
-using System.Runtime.InteropServices;
-using System.Security.Cryptography.X509Certificates;
+using System.Data;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using DatabaseConnection.Contexts;
 
-namespace DatabaseConnection
+namespace DatabaseConnection.Models
 {
-    public class Countries
+    public class CountriesModel
     {
+        public string Id { get; set; }
+        public string Name { get; set; }
+        public int RegionId { get; set; }
 
-  
-        SqlConnection connection = MyConnection.Get();
 
-        public List<Countries> GetAllCountries()
+        public CountriesModel() { }
+
+        public CountriesModel(string id, string name, int regionId)
         {
-            var countries = new List<Countries>();
+            if (Id.Length > 3)
+            {
+                throw new ArgumentException("THE LENGTH OF ID MUST NOT EXCEED 2 CHARACTERS");
+            }
+            Id = id;
+            Name = name;
+            RegionId = regionId;
+        }
+
+        public List<CountriesModel> GetAll()
+        {
+            var countries = new List<CountriesModel>();
             SqlConnection connection = MyConnection.Get();
+            connection.Open();
             try
             {
                 //Membuat Instance untuk command
@@ -32,7 +49,7 @@ namespace DatabaseConnection
                 {
                     while (reader.Read())
                     {
-                        var cou = new Countries();
+                        var cou = new CountriesModel();
                         cou.Id = reader.GetString(0);
                         cou.Name = reader.GetString(1);
                         cou.RegionId = reader.GetInt32(2);
@@ -46,7 +63,7 @@ namespace DatabaseConnection
                 }
                 reader.Close();
             }
-      
+
             catch (Exception ex)
             {
                 Console.WriteLine(ex.Message);
@@ -56,10 +73,12 @@ namespace DatabaseConnection
             return countries;
 
         }
-        public List<Countries> GetAllById(string id)
+        public CountriesModel GetById(string id)
         {
             SqlConnection connection = MyConnection.Get();
-            var countries = new List<Countries>();
+                        connection.Open();
+            var countries = new CountriesModel();
+
             /*connection = new SqlConnection(connectionString);*/
             try
             {
@@ -81,15 +100,12 @@ namespace DatabaseConnection
                 using SqlDataReader reader = command.ExecuteReader();
                 if (reader.HasRows)
                 {
-                    while (reader.Read())
-                    {
-                        var cou = new Countries();
-                        cou.Id = reader.GetString(0);
-                        cou.Name = reader.GetString(1);
-                        cou.RegionId = reader.GetInt32(2);
+                    reader.Read();
+                    countries.Id = reader.GetString(0);
+                    countries.Name = reader.GetString(1);
+                    countries.RegionId = reader.GetInt32(2);
 
-                        countries.Add(cou);
-                    }
+
                 }
                 else
                 {
@@ -106,12 +122,13 @@ namespace DatabaseConnection
             connection.Close();
             return countries;
         }
-        public int InsertCountries(string id, string name, int reg_id)
+        public int Insert(string id, string name, int reg_id)
         {
             int result = 0;
             SqlConnection connection = MyConnection.Get();
-
+            connection.Open();
             SqlTransaction transaction = connection.BeginTransaction();
+           
 
             try
             {
@@ -163,14 +180,17 @@ namespace DatabaseConnection
 
 
         }
-        public int UpdateCountries(string id, string name, int reg_id)
+        public int Update(string id, string name, int reg_id)
         {
             int result = 0;
             SqlConnection connection = MyConnection.Get();
+            connection.Open();
             SqlTransaction transaction = connection.BeginTransaction();
+         
 
             try
             {
+
                 /* connection.Open();
                  //Instance Command
                  connection = new SqlConnection(connectionString);*/
@@ -224,11 +244,14 @@ namespace DatabaseConnection
             connection.Close();
             return result;
         }
-        public int DeleteCountries(string id)
+        public int Delete(string id)
         {
             int result = 0;
+
             SqlConnection connection = MyConnection.Get();
+            connection.Open();
             SqlTransaction transaction = connection.BeginTransaction();
+           
             try
             {
                 SqlCommand command = new SqlCommand();
@@ -274,158 +297,5 @@ namespace DatabaseConnection
             connection.Close();
             return result;
         }
-
-        public void MenuCountries()
-        {
-            Menu menu = new Menu();
-
-            List<Countries> country = GetAllCountries();
-            foreach (Countries countries in country)
-            {
-                Console.WriteLine("Id : " + countries.Id + ", Name " + countries.Name + ", Region Id " + countries.RegionId);
-            }
-
-
-            /*        Console.WriteLine("INPUT DATA : ");*/
-            /*
-                        string InputRegion = Console.ReadLine();
-                        InsertToRegion(InputRegion);
-
-                        regions = GetAllRegions();
-                        foreach (var region in regions)
-                        {
-                            Console.WriteLine("Id : " + region.Id + ", Name " + region.Name);
-                        }*/
-
-            Console.WriteLine("\n");
-            Console.WriteLine("1.GetById");
-            Console.WriteLine("2.Insert");
-            Console.WriteLine("3.Update");
-            Console.WriteLine("4.Delete");
-            Console.WriteLine("5.Kembali");
-
-
-            try
-            {
-                Console.Write("Pilih Menu : ");
-                int InputPilihan = int.Parse(Console.ReadLine());
-                switch (InputPilihan)
-                {
-                    case 1:
-                        MenuGetId();
-                        break;
-                    case 2:
-                        MenuInsert();
-                        break;
-                    case 3:
-                        MenuUpdate();
-                        break;
-                    case 4:
-                        MenuDelete();
-                        break;
-                    case 5:
-                        menu.MenuDb();
-                        break;   
-                }
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine(ex.Message);
-            }
-
-        }
-
-        public void MenuGetId()
-        {
-            List<Countries> country = GetAllCountries();
-            Console.WriteLine("GET ALL BY ID");
-            Console.Write("Masukkan ID Region : ");
-            string id = Console.ReadLine();
-            country = GetAllById(id);
-            foreach (Countries countries in country)
-            {
-                Console.WriteLine("Id : " + countries.Id + ", Name : " + countries.Name + ", Region Id : " + countries.RegionId);
-                Console.ReadKey();
-                MenuCountries();
-            }             
-        }
-        public void MenuInsert()
-        {
-            Console.WriteLine("INSERT");
-            Console.Write("Masukkan ID Countries : ");
-            string id = Console.ReadLine();
-            Console.Write("Masukkan Nama Countries : ");
-            string name = Console.ReadLine();
-            Console.Write("Masukkan region_id Countries : ");
-            int reg_id = int.Parse(Console.ReadLine());            
-            int isInsertSuccessfull = InsertCountries(id,name,reg_id);
-            if (isInsertSuccessfull > 0)
-            {
-                Console.WriteLine("Data Berhasil Ditambahkan !");
-                Console.ReadKey();
-                MenuCountries();
-            }
-            else
-            {
-                Console.WriteLine("Data Gagal Ditambahkan");
-                MenuCountries();
-            }
-        }
-        public void MenuUpdate()
-        {
-            Console.WriteLine("UPATE");
-            Console.Write("Masukkan ID : ");
-            string id = Console.ReadLine();
-            Console.Write("Masukkan Nama Yang Ingin Di Update : ");
-            string newName = Console.ReadLine();
-            Console.Write("Masukkan Id Region Yang Ingin Di Update : ");
-            int reg_id = int.Parse(Console.ReadLine());
-            /*  Console.WriteLine("Enter ID");
-              int new_id = int.Parse(Console.ReadLine());
-  */
-            int update = UpdateCountries(id, newName, reg_id);
-            if (update > 0)
-            {
-                Console.WriteLine("Data Berhasil Di Update");
-                Console.ReadKey();
-                MenuCountries();
-            }
-            else
-            {
-                Console.WriteLine("Data Gagal Di Update");
-                Console.ReadKey();
-                MenuCountries();
-            }
-        }
-        public void MenuDelete()
-        {
-            Console.WriteLine("Delete");
-            Console.Write("Masukkan ID Yang Ingin Di DELETE : ");
-            string reg_id = Console.ReadLine();
-            /*  Console.WriteLine("Enter ID");
-              int new_id = int.Parse(Console.ReadLine());
-  */
-            int delete = DeleteCountries(reg_id);
-            if (delete > 0)
-            {
-                Console.WriteLine("Data Berhasil Di Didelete");
-                Console.ReadKey();
-                MenuCountries();
-            }
-            else
-            {
-                Console.WriteLine("Data Gagal Di Delete");
-                Console.ReadKey();
-                MenuCountries();
-            }
-        }
-
-
-        public string Id { get; set; }
-        public string Name { get; set; }
-        public int RegionId { get; set; }   
-
-
     }
-
 }

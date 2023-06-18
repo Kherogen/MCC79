@@ -1,4 +1,5 @@
-﻿using Microsoft.VisualBasic;
+﻿using DatabaseConnection.Controllers;
+using Microsoft.VisualBasic;
 using System.Data;
 using System.Data.SqlClient;
 using System.Diagnostics;
@@ -9,7 +10,12 @@ namespace DatabaseConnection
     public class Program 
     {
 
-        public static void Main(string[] args) => new Menu().MenuDb();
+        public static void Main(string[] args)
+        {
+            MenuController menuController = new MenuController();
+
+            menuController.MainMenu();
+        }
        /* {*/
 
             /*connection = new SqlConnection(connectionString);

@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace DatabaseConnection
+namespace DatabaseConnection.Models
 {
     public class Soal1
     {
@@ -18,5 +18,22 @@ namespace DatabaseConnection
         public string CName { get; set; }
         public string RName { get; set; }
 
+        public Soal1 (int id, string fullName, string email, string phone, int salary, string dName, string lStreet, string cName, string rName)
+        {
+            Id = id;
+            FullName = fullName;
+            Email = email;
+            Phone = phone;
+            Salary = salary;
+            DName = dName;
+            LStreet = lStreet;
+            CName = cName;
+            RName = rName;
+        }
+
+        public Soal1 ()
+        {
+
+        }
     }
 }
